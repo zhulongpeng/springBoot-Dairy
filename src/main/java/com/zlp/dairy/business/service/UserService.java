@@ -5,7 +5,7 @@ import com.zlp.dairy.business.model.UserMO;
 import com.zlp.dairy.business.model.UserVO;
 import org.springframework.data.domain.Page;
 
-import java.util.*;
+import java.util.List;
 
 public interface UserService {
 

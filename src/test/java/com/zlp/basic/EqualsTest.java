@@ -1,4 +1,4 @@
-package com.zlp.dairy;
+package com.zlp.basic;
 
 import com.zlp.DairyApplicationTests;
 import org.junit.Test;

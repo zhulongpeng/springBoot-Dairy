@@ -1,4 +1,4 @@
-package com.zlp.dairy;
+package com.zlp.business;
 
 import com.alibaba.fastjson.JSONArray;
 import com.zlp.DairyApplicationTests;
