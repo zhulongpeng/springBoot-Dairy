@@ -1,5 +1,6 @@
 package com.zlp.dairy;
 
+import com.alibaba.fastjson.JSONArray;
 import com.zlp.DairyApplicationTests;
 import com.zlp.dairy.base.util.ResResult;
 import com.zlp.dairy.business.model.UserVO;
@@ -18,6 +19,6 @@ public class LoginTest extends DairyApplicationTests {
         String password = "123456";
         ResResult<UserVO> result = new ResResult<>();
         result.success(userService.login(userName, password));
-        System.out.println(result);
+        System.out.println(JSONArray.toJSON(result));
     }
 }
