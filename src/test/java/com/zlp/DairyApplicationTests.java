@@ -1,4 +1,4 @@
-package com.zlp.dairy;
+package com.zlp;
 
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;

@@ -1,5 +1,6 @@
 package com.zlp.dairy;
 
+import com.zlp.DairyApplicationTests;
 import org.junit.Test;
 
 public class EqualsTest extends DairyApplicationTests {

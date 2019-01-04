@@ -1,5 +1,6 @@
 package com.zlp.dairy;
 
+import com.zlp.DairyApplicationTests;
 import com.zlp.dairy.base.util.ResResult;
 import com.zlp.dairy.business.model.UserVO;
 import com.zlp.dairy.business.service.UserService;

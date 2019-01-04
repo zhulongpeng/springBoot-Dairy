@@ -1,5 +1,6 @@
 package com.zlp.dairy;
 
+import com.zlp.DairyApplicationTests;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
@@ -11,12 +12,6 @@ public class ArrayListTest extends DairyApplicationTests {
         List<String> list = new ArrayList<>();
         list.add("1");
         list.add("2");
-          /*  for(String item : list){
-                if("2".equals(item)){
-                    list.remove(item);
-                }
-            }
-            System.out.println(list);*/
         Iterator<String> iterator = list.iterator();
         while(iterator.hasNext()){
             String item = iterator.next();
