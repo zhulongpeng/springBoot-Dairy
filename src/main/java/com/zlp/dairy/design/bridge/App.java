@@ -13,10 +13,12 @@ public class App {
         enchantedSword.swing();
         enchantedSword.unWield();
 
-        logger.info("The valkyrie receives an enchanted hammer.");
+        logger.info("The valkyrie receives an enchanted hammer");
         Hammer hammer = new Hammer(new FlyingEnchantment());
         hammer.wield();
-        hammer.swing();
         hammer.unWield();
+        hammer.swing();
     }
+
+
 }
