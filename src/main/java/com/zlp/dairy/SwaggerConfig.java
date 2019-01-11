@@ -30,7 +30,7 @@ public class SwaggerConfig {
         return new ApiInfoBuilder()
                 .title("欢迎使用---API接口文档")
                 .description("SpringBoot中使用Swagger2构建RESTful API")
-                .contact(new Contact("Ygritte", "Ygritte.zhu@3ti.us", ""))
+                .contact(new Contact("Ygritte", "Ygritte@gmail.com", ""))
                 .version("1.0")
                 .build();
     }
