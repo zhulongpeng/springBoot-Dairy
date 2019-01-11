@@ -18,4 +18,21 @@ public class CountryHandle {
     public List<Country> findCountriesByCodeSet(Set<String> countrySet) {
         return countryRepository.findAllByCodeInAndStatus(countrySet, Constant.Status.vaild);
     }
+
+    public Country findCountryByCodeAndLanguage(String code, String language) {
+        return countryRepository.findByCodeAndLanguageAndStatus(code, language, Constant.Status.vaild);
+    }
+
+    public Country saveCountry(Country country) {
+        return countryRepository.save(country);
+
+    }
+
+    public List<String> findCodeGroupByCode() {
+        return countryRepository.findCodeGroupByCode();
+    }
+
+    public List<Country> findCountryByCode(String code) {
+        return countryRepository.findByCodeAndStatus(code, Constant.Status.vaild);
+    }
 }

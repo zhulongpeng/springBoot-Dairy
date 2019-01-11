@@ -10,4 +10,11 @@ public interface CountryService {
 
     List<Country> findCountriesByCodeSet(Set<String> countrySet);
 
+    Boolean findCountryByCodeAndLanguage(String code, String language);
+
+    String saveCountry(Country country);
+
+    List<String> findCodeGroupByCode();
+
+    List<Country> findCountriesByCode(String code);
 }

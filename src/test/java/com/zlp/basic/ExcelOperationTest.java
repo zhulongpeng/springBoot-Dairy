@@ -5,14 +5,15 @@ import com.zlp.DairyApplicationTests;
 import com.zlp.dairy.base.util.DateProcessUtil;
 import com.zlp.dairy.business.entity.Country;
 import com.zlp.dairy.business.entity.Language;
+import com.zlp.dairy.business.repository.CountryRepository;
 import com.zlp.dairy.business.service.CountryService;
 import com.zlp.dairy.business.service.LanguageService;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.junit.Test;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -29,6 +30,9 @@ public class ExcelOperationTest extends DairyApplicationTests {
 
     @Autowired
     private CountryService countryService;
+
+    @Autowired
+    private CountryRepository countryRepository;
 
     @Test
     public void importExcelTest() throws Exception {
@@ -87,19 +91,35 @@ public class ExcelOperationTest extends DairyApplicationTests {
         List<Country> countryList = countryService.findCountriesByCodeSet(countrySet);
         System.out.println("countryList数据：" + countryList);
         if (CollectionUtils.isEmpty(countryList)) return;
-        Map<String, List<Country>> collect1 = countryList.stream().collect(Collectors.groupingBy(Country::getCode));
         Map<String, Map<String, List<Country>>> countryMap = countryList.stream().collect(Collectors.groupingBy(Country::getCode, Collectors.groupingBy(Country::getLanguage)));
         List<Country> result = new ArrayList<>();
         //把数据渲染到实体类中去
         for (Map<Integer, String> map : dataMapList) {
             String countryCode = map.get(0);
+            System.out.println("countryCode:"+countryCode);
             Map<String, List<Country>> countryListMap = countryMap.get(countryCode);
-
-
-
+            //利用启用的语言进行过滤
+            for(String language : languageList){
+                List<Country> countries = countryListMap.get(language);
+                System.out.println("countries:"+countries);
+                //获取该language下面的值
+                String value = map.get(headerMap.get(language));
+                if(StringUtils.isEmpty(value)) continue;
+                Country country = null;
+                if(CollectionUtils.isEmpty(countries)){
+                    country = new Country();
+                    country.setCode(countryCode);
+                    country.setLanguage(language);
+                    country.setCountryName(value);
+                    result.add(country);
+                }else{
+                    country = countries.get(0);
+                    country.setCountryName(value);
+                    result.add(country);
+                }
+            }
         }
-
-
+        countryRepository.saveAll(result);
     }
 
     private String getCellValue(Cell cell) {
