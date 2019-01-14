@@ -1,8 +1,10 @@
 package com.zlp.basic;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.zlp.DairyApplicationTests;
 import org.junit.Test;
+import org.junit.platform.commons.util.CollectionUtils;
 
 import java.util.*;
 
@@ -188,5 +190,19 @@ public class MapTest extends DairyApplicationTests {
         map.forEach((k,v)->{
             System.out.println(k+" "+v);
         });
+    }
+
+    @Test
+    public void stringTest(){
+        String s = "1,3,5,2,4,6,11,8";
+        List<String> split = Arrays.asList(s.split(","));
+        System.out.println(JSON.toJSONString(split));
+        List<Integer> number = new ArrayList<>();
+        split.stream().forEach(temp->{
+            number.add(Integer.parseInt(temp));
+        });
+        Collections.sort(number);
+        Collections.reverse(number);
+        System.out.println(number);
     }
 }

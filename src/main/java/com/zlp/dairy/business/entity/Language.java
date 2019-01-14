@@ -16,6 +16,14 @@ public class Language extends BaseEntity {
 
     private String code;
 
+    public Language() {
+    }
+
+    public Language(String code, String language) {
+        this.language = language;
+        this.code = code;
+    }
+
     @Column(name = "language")
     public String getLanguage() {
         return language;
