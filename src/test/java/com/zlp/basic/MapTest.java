@@ -1,10 +1,8 @@
 package com.zlp.basic;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.zlp.DairyApplicationTests;
 import org.junit.Test;
-import org.junit.platform.commons.util.CollectionUtils;
 
 import java.util.*;
 
@@ -204,5 +202,32 @@ public class MapTest extends DairyApplicationTests {
         Collections.sort(number);
         Collections.reverse(number);
         System.out.println(number);
+    }
+
+    @Test
+    public void stringsTest() {
+        String s = "1,12,14,15,2,8,9,45,15,48,25";
+        List<String> strings = Arrays.asList(s.split(","));
+        System.out.println(JSON.toJSONString(strings));
+        List<Integer> number = new ArrayList<>();
+        strings.stream().forEach(temp -> {
+            number.add(Integer.parseInt(temp));
+        });
+        Collections.sort(number);
+        System.out.println(number);
+        Collections.reverse(number);
+        System.out.println(number);
+    }
+
+    @Test
+    public void sortTest(){
+        String s = "sing, china, japan, test, an, bei, ci";
+        List<String> strings = Arrays.asList(s.split(","));
+        Collections.sort(strings);
+        System.out.println(strings);
+        System.out.println(JSON.toJSONString(strings));
+        strings.stream().forEach(temp->{
+            System.out.println(temp);
+        });
     }
 }
