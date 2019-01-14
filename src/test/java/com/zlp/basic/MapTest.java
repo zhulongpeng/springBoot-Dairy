@@ -2,11 +2,18 @@ package com.zlp.basic;
 
 import com.alibaba.fastjson.JSON;
 import com.zlp.DairyApplicationTests;
+import com.zlp.dairy.business.entity.Language;
+import com.zlp.dairy.business.service.LanguageService;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class MapTest extends DairyApplicationTests {
+
+    @Autowired
+    private LanguageService languageService;
 
     @Test
     public void mapTest1(){
@@ -228,6 +235,30 @@ public class MapTest extends DairyApplicationTests {
         System.out.println(JSON.toJSONString(strings));
         strings.stream().forEach(temp->{
             System.out.println(temp);
+        });
+    }
+
+    @Test
+    public void mapTest(){
+        List<Language> allLanguage = languageService.allLanguage();
+        List<String> code = allLanguage.stream().map(Language::getCode).collect(Collectors.toList());
+        System.out.println(code);
+        System.out.println(JSON.toJSONString(code));
+        List<String> language = allLanguage.stream().map(Language::getLanguage).collect(Collectors.toList());
+        System.out.println(language);
+    }
+
+    @Test
+    public void groupingByTest(){
+        List<Language> allLanguage = languageService.allLanguage();
+        Map<String, List<Language>> collect = allLanguage.stream().collect(Collectors.groupingBy(Language::getCode));
+        collect.forEach((k,v)->{
+            System.out.println(k+"  "+JSON.toJSONString(v));
+        });
+        System.out.println("******************************************************************************************");
+        Map<String, Map<String, List<Language>>> mapMap = allLanguage.stream().collect(Collectors.groupingBy(Language::getCode, Collectors.groupingBy(Language::getLanguage)));
+        mapMap.forEach((k,v)->{
+            System.out.println(k+"  "+JSON.toJSONString(v));
         });
     }
 }
