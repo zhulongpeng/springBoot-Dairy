@@ -255,7 +255,6 @@ public class MapTest extends DairyApplicationTests {
         collect.forEach((k,v)->{
             System.out.println(k+"  "+JSON.toJSONString(v));
         });
-        System.out.println("******************************************************************************************");
         Map<String, Map<String, List<Language>>> mapMap = allLanguage.stream().collect(Collectors.groupingBy(Language::getCode, Collectors.groupingBy(Language::getLanguage)));
         mapMap.forEach((k,v)->{
             System.out.println(k+"  "+JSON.toJSONString(v));
