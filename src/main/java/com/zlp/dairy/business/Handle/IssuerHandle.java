@@ -1,0 +1,12 @@
+package com.zlp.dairy.business.Handle;
+
+import com.zlp.dairy.business.repository.IssuerRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+@Component
+public class IssuerHandle {
+
+    @Autowired
+    private IssuerRepository issuerRepository;
+}
