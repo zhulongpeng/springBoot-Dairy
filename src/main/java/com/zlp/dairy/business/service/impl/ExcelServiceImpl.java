@@ -3,15 +3,15 @@ package com.zlp.dairy.business.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.zlp.dairy.base.constant.Constant;
 import com.zlp.dairy.base.constant.ExcelUploadError;
+import com.zlp.dairy.base.util.DateProcessUtil;
 import com.zlp.dairy.base.util.FileUtil;
 import com.zlp.dairy.base.util.MD5Util;
 import com.zlp.dairy.base.util.ResResult;
 import com.zlp.dairy.business.entity.Issuer;
+import com.zlp.dairy.business.entity.Language;
 import com.zlp.dairy.business.entity.UploadResultError;
 import com.zlp.dairy.business.service.ExcelService;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
 import java.nio.charset.Charset;
+import java.text.DecimalFormat;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -35,6 +36,9 @@ public class ExcelServiceImpl implements ExcelService {
     private static final String FH = "/";
 
     private static final String SPLIT_FH = ";";
+
+    @Value("${web.upload-path}")
+    private String uploadPath;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -103,19 +107,19 @@ public class ExcelServiceImpl implements ExcelService {
                 return;
             }
             index = 0;
-            Map<String, List<CodeValueVO>> languageMap = new HashMap<>();
+            Map<String, List<Language>> languageMap = new HashMap<>();
             List<Issuer> issuers = new ArrayList<>();
             for (Row temp : issuerList) {
                 Issuer issuer = new Issuer();
                 String countryCode = getCellValue(temp.getCell(1));
-                List<CodeValueVO> voList = languageMap.get(countryCode);
+                List<Language> voList = languageMap.get(countryCode);
                 if (CollectionUtils.isEmpty(voList)) {
                     voList = languageService.allLanguageByMarkets(Collections.singletonList(countryCode));
                     if (CollectionUtils.isEmpty(voList)) continue;
                     languageMap.put(countryCode, voList);
                 }
                 // 利用启用的语言进行过滤
-                for (CodeValueVO vo : voList) {
+                for (Language vo : voList) {
                     String language = getCellValue(temp.getCell(5));
                     if (vo.getCode().equalsIgnoreCase(language)) {
                         issuer.setCountryCode(countryCode);
@@ -163,6 +167,62 @@ public class ExcelServiceImpl implements ExcelService {
             errorMO.setIndex(index);
             throw new RuntimeException(JSON.toJSONString(errorMO));
         }
+    }
+
+    private String getCellValue(Cell cell) {
+        if (cell == null) return null;
+        String cellValue = null;
+        //判断数据的类型
+        switch (cell.getCellType()) {
+            case Cell.CELL_TYPE_NUMERIC: //数字
+                if (DateUtil.isCellDateFormatted(cell)) {
+                    Date date = cell.getDateCellValue();
+                    cellValue = DateProcessUtil.getStrDate(date, DateProcessUtil.YYYYMMDD);
+                } else {
+                    DecimalFormat df = new DecimalFormat("#.######");
+                    cellValue = df.format(cell.getNumericCellValue());
+                }
+                break;
+            case Cell.CELL_TYPE_STRING: //字符串
+                String stringCellValue = cell.getStringCellValue();
+                cellValue = new String(stringCellValue.getBytes(), Charset.forName("UTF-8"));
+                break;
+            case Cell.CELL_TYPE_BOOLEAN: //Boolean
+                cellValue = String.valueOf(cell.getBooleanCellValue());
+                break;
+            case Cell.CELL_TYPE_FORMULA: //公式
+                cellValue = String.valueOf(cell.getCellFormula());
+                break;
+            case Cell.CELL_TYPE_BLANK: //空值
+                cellValue = "";
+                break;
+            case Cell.CELL_TYPE_ERROR: //故障
+                cellValue = "非法字符";
+                break;
+            default:
+                cellValue = "未知类型";
+                break;
+        }
+        return cellValue;
+    }
+
+    private void jxSheet(Sheet sheet, List<Row> rowList) {
+        if (sheet == null) return;
+        int physicalNumberOfRows = sheet.getPhysicalNumberOfRows();
+        for (int i = 1; i < physicalNumberOfRows; i++) {
+            rowList.add(sheet.getRow(i));
+        }
+    }
+
+    private File getExcelFile(String analysisDir, ResResult<List<UploadResultError>> result) {
+        File dir = new File(analysisDir);
+        File[] files = dir.listFiles();
+        for (File file : files) {
+            if (file.getName().endsWith(".xls") || file.getName().endsWith(".xlsx")) {
+                return file;
+            }
+        }
+        return null;
     }
 
     private void analysisZIP(String[] filePath, ResResult<List<UploadResultError>> result) throws IOException {
