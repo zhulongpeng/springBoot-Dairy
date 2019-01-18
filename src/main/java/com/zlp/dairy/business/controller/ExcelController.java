@@ -1,8 +1,6 @@
 package com.zlp.dairy.business.controller;
 
 import com.alibaba.fastjson.JSON;
-import com.sun.org.apache.regexp.internal.RE;
-import com.zlp.dairy.base.constant.ExcelUploadError;
 import com.zlp.dairy.base.util.ResResult;
 import com.zlp.dairy.base.util.XaUtil;
 import com.zlp.dairy.business.entity.Country;
@@ -10,7 +8,6 @@ import com.zlp.dairy.business.entity.Language;
 import com.zlp.dairy.business.entity.UploadResultError;
 import com.zlp.dairy.business.repository.CountryRepository;
 import com.zlp.dairy.business.service.CountryService;
-import com.zlp.dairy.business.service.ExcelService;
 import com.zlp.dairy.business.service.LanguageService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -18,7 +15,6 @@ import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -43,27 +39,6 @@ public class ExcelController {
     @Autowired
     private CountryRepository countryRepository;
 
-    @Autowired
-    private ExcelService excelService;
-
-    @ApiOperation("上传issuer信息")
-    @PostMapping(value = "/v1/cms/issuerExcel/upload", consumes = "multipart/form-data")
-    @ResponseBody
-    public ResResult<List<UploadResultError>> fileUploadForIssuer(
-            @RequestParam(value = "file",required = false)MultipartFile file
-    ){
-        ResResult<List<UploadResultError>> result = new ResResult<>();
-        if(file.isEmpty()){
-            result.error(ExcelUploadError.FILE_IS_NULL.getCode());
-            return result;
-        }
-        try {
-            result = excelService.fileUploadForIssuer(file);
-        } catch (Exception e) {
-            result.error(e.getMessage());
-        }
-        return result;
-    }
 
     @ApiOperation("通过Excel导入国家信息")
     @RequestMapping("/v1/cms/countries/import")
