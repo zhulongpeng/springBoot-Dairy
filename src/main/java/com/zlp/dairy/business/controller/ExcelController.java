@@ -1,6 +1,7 @@
 package com.zlp.dairy.business.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.zlp.dairy.base.constant.ExcelUploadError;
 import com.zlp.dairy.base.util.ResResult;
 import com.zlp.dairy.base.util.XaUtil;
 import com.zlp.dairy.business.entity.Country;
@@ -8,6 +9,7 @@ import com.zlp.dairy.business.entity.Language;
 import com.zlp.dairy.business.entity.UploadResultError;
 import com.zlp.dairy.business.repository.CountryRepository;
 import com.zlp.dairy.business.service.CountryService;
+import com.zlp.dairy.business.service.ExcelService;
 import com.zlp.dairy.business.service.LanguageService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -29,6 +31,9 @@ import java.util.stream.Collectors;
 @Api(value = "ExcelController")
 @RestController
 public class ExcelController {
+
+    @Autowired
+    private ExcelService excelService;
 
     @Autowired
     private LanguageService languageService;
@@ -240,6 +245,25 @@ public class ExcelController {
             return String.valueOf(cell.getNumericCellValue());
         }
         return "";
+    }
+
+    @ApiOperation("上传信息")
+    @PostMapping(value = "/v1/cms/iExcel/upload", consumes = "multipart/form-data")
+    @ResponseBody
+    public ResResult<List<UploadResultError>> fileUploadForIssuer(
+            @RequestParam(value = "file", required = false) MultipartFile file
+    ){
+        ResResult<List<UploadResultError>> result = new ResResult<>();
+        if(file.isEmpty()){
+            result.error(ExcelUploadError.FILE_IS_NULL.getCode());
+            return result;
+        }
+        try {
+            result =  excelService.fileUploadForIssuer(file);
+        } catch (Exception e) {
+            result.error(e.getMessage());
+        }
+        return result;
     }
 
 }
