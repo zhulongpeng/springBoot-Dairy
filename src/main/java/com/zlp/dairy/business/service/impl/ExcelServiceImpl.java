@@ -7,16 +7,18 @@ import com.zlp.dairy.base.util.MD5Util;
 import com.zlp.dairy.base.util.ResResult;
 import com.zlp.dairy.business.entity.UploadResultError;
 import com.zlp.dairy.business.service.ExcelService;
+import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.PushbackInputStream;
+import java.io.*;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 public class ExcelServiceImpl implements ExcelService {
 
@@ -61,7 +63,40 @@ public class ExcelServiceImpl implements ExcelService {
     }
 
     private void analysisZIP(String[] filepath, ResResult<List<UploadResultError>> result) {
-
+        String charset = "UTF-8";
+        File zipFile = new File(filepath[0]);
+        ZipFile zipFileObj = null;
+        String analysisDir = filepath[1];
+        try {
+            zipFileObj = new ZipFile(zipFile, Charset.forName(charset));
+            final Enumeration<ZipEntry> em = (Enumeration<ZipEntry>) zipFileObj.entries();
+            ZipEntry zipEntry;
+            File outItemFile;
+            while (em.hasMoreElements()) {
+                zipEntry = em.nextElement();
+                outItemFile = new File(new File(analysisDir), zipEntry.getName());
+                if (zipEntry.isDirectory()) {
+                    outItemFile.mkdirs();
+                } else {
+                    if (false == outItemFile.exists()) {
+                        final File parentFile = outItemFile.getParentFile();
+                        if (null != parentFile && false == parentFile.exists()) {
+                            parentFile.mkdirs();
+                        }
+                        outItemFile.createNewFile();
+                    }
+                    try (InputStream in = zipFileObj.getInputStream(zipEntry); OutputStream out = new BufferedOutputStream(new FileOutputStream(outItemFile))) {
+                        IOUtils.copy(in, out);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            result.error(ExcelUploadError.ZIP_ANALYSIS_ERROR.getCode());
+        } finally {
+            if (zipFileObj != null) {
+                IOUtils.closeQuietly(zipFileObj);
+            }
+        }
     }
 
     private String[] uploadFile(String fileName, InputStream inputStream, String type, ResResult<List<UploadResultError>> result) {
@@ -89,7 +124,14 @@ public class ExcelServiceImpl implements ExcelService {
         return fileStrs;
     }
 
-    private void saveFile(InputStream inputStream, String filePath) {
-
+    private void saveFile(InputStream inputStream, String filePath) throws Exception {
+        FileOutputStream fileOutputStream = new FileOutputStream(filePath);
+        int bytesRead = 0;
+        byte[] buffer = new byte[1024];
+        while((bytesRead = inputStream.read(buffer, 0, 1024)) != -1){
+            fileOutputStream.write(buffer, 0, bytesRead);
+        }
+        fileOutputStream.close();
+        inputStream.close();
     }
 }
