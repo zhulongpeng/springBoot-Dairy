@@ -10,4 +10,6 @@ public interface LanguageService {
     List<Language> allLanguage();
 
     String createLanguage(LanguageMO languageMO);
+
+    List<LanguageMO> allLanguageByMarkets(List<String> markets);
 }

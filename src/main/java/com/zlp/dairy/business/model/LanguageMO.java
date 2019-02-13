@@ -28,4 +28,9 @@ public class LanguageMO implements Serializable {
     public void setCode(String code) {
         this.code = code;
     }
+
+    public LanguageMO(String language, String code) {
+        this.language = language;
+        this.code = code;
+    }
 }

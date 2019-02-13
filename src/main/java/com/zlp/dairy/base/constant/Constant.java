@@ -11,6 +11,18 @@ public class Constant {
         public static final int delete = 3;
     }
 
+    public static final class Dict {
+
+        public static final String ALL_LANGUAGE = "allLanguage";
+
+    }
+
+    public static final class Language {
+
+        public static final String ONLINE = "ONLINE_LANGUAGE";
+
+    }
+
     public static final class Code {
 
         public static final int success = 1;
