@@ -22,7 +22,7 @@ public class CategoryController extends BaseController {
     private CategoryService categoryService;
 
     @ApiOperation("添加category")
-    @PostMapping("/v1/cms/login")
+    @PostMapping("/v1/cms/category")
     @ResponseBody
     public ResResult<String> createCategory(
             @ApiParam(name = "category", value = "category")@RequestBody List<CategoryMO> categoryMOList
