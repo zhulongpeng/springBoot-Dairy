@@ -1,12 +1,15 @@
 package com.zlp.dairy.business.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.zlp.dairy.base.constant.Constant;
 import com.zlp.dairy.base.constant.ExcelUploadError;
 import com.zlp.dairy.base.util.ResResult;
 import com.zlp.dairy.base.util.XaUtil;
 import com.zlp.dairy.business.entity.Country;
 import com.zlp.dairy.business.entity.Language;
 import com.zlp.dairy.business.entity.UploadResultError;
+import com.zlp.dairy.business.model.InsertDBErrorMO;
 import com.zlp.dairy.business.repository.CountryRepository;
 import com.zlp.dairy.business.service.CountryService;
 import com.zlp.dairy.business.service.ExcelService;
@@ -87,7 +90,7 @@ public class ExcelController {
                 for (int i = 1; i < numberOfRows; i++) {
                     //实例化单个数据的map
                     dataMap = new HashMap<>();
-                    for (int j = 0; j < numberOfCells; j++){
+                    for (int j = 0; j < numberOfCells; j++) {
                         //循环赋值
                         dataMap.put(j, getCellValue(sheet.getRow(i).getCell(j)));
                     }
@@ -100,9 +103,9 @@ public class ExcelController {
                 List<String> languageList = allLanguage.stream().map(Language::getCode).collect(Collectors.toList());
                 //取出所有的countryCode
                 Set<String> countrySet = dataMapList.stream().map(temp -> temp.get(0)).collect(Collectors.toSet());
-                countrySet.forEach(temp->{
-                    languageList.stream().forEach(language->{
-                        if(countryService.findCountryByCodeAndLanguage(temp, language)){
+                countrySet.forEach(temp -> {
+                    languageList.stream().forEach(language -> {
+                        if (countryService.findCountryByCodeAndLanguage(temp, language)) {
                             Country country = new Country();
                             country.setLanguage(language);
                             country.setCode(temp);
@@ -111,11 +114,11 @@ public class ExcelController {
                     });
                 });
                 List<Country> countryList = countryService.findCountriesByCodeSet(countrySet);
-                if(CollectionUtils.isEmpty(countryList)) result.error("No CountryList");
+                if (CollectionUtils.isEmpty(countryList)) result.error("No CountryList");
                 Map<String, Map<String, List<Country>>> countryMap = countryList.stream().collect(Collectors.groupingBy(Country::getCode, Collectors.groupingBy(Country::getLanguage)));
                 List<Country> result1 = new ArrayList<>();
                 //把数据渲染到实体类中去
-                for(Map<Integer, String> map : dataMapList){
+                for (Map<Integer, String> map : dataMapList) {
                     String countryCode = map.get(0);
                     Map<String, List<Country>> countryListMap = countryMap.get(countryCode);
                     // 利用启用的语言进行过滤
@@ -192,8 +195,8 @@ public class ExcelController {
     @PostMapping("/v1/cms/excelImport")
     @ResponseBody
     public ResResult<List<UploadResultError>> fileUpload(
-            @RequestParam(value = "file", required = true)MultipartFile file
-    ){
+            @RequestParam(value = "file", required = true) MultipartFile file
+    ) {
         ResResult<List<UploadResultError>> result = new ResResult<>();
         return result;
     }
@@ -247,10 +250,37 @@ public class ExcelController {
         return "";
     }
 
+
     @ApiOperation("上传信息")
-    @PostMapping(value = "/v1/cms/iExcel/upload", consumes = "multipart/form-data")
+    @PostMapping(value = "/v1/cms/issuerExcel/upload", consumes = "multipart/form-data")
     @ResponseBody
     public ResResult<List<UploadResultError>> fileUploadForIssuer(
+            @RequestParam(value = "file", required = false) MultipartFile file
+    ){
+        ResResult<List<UploadResultError>> result = new ResResult<>();
+        if(file.isEmpty()){
+            return result;
+        }
+        try {
+            result = excelService.fileUploadForIssuer(file);
+        } catch (Exception e) {
+           String message =  e.getLocalizedMessage();
+           InsertDBErrorMO errorMO =  JSONObject.parseObject(message, InsertDBErrorMO.class);
+           List<UploadResultError> uploadResultErrors = new ArrayList<>();
+            UploadResultError resultError = new UploadResultError(-1, -1, errorMO.getIndex(), errorMO.getCode());
+            uploadResultErrors.add(resultError);
+            result.setData(uploadResultErrors);
+            result.setCode(Constant.Code.error);
+            result.setMessage(ExcelUploadError.UPLOAD_ERROR.getCode());
+        }
+        return result;
+    }
+
+
+    @ApiOperation("上传IP信息")
+    @PostMapping(value = "/v1/cms/issuerProductExcel/upload", consumes = "multipart/form-data")
+    @ResponseBody
+    public ResResult<List<UploadResultError>> fileUploadForIssuerProduct(
             @RequestParam(value = "file", required = false) MultipartFile file
     ){
         ResResult<List<UploadResultError>> result = new ResResult<>();
@@ -259,11 +289,19 @@ public class ExcelController {
             return result;
         }
         try {
-            result =  excelService.fileUploadForIssuer(file);
+           result =  excelService.fileUploadForIssuerProduct(file);
         } catch (Exception e) {
-            result.error(e.getMessage());
+            String message = e.getLocalizedMessage();
+            InsertDBErrorMO errorMO = JSONObject.parseObject(message, InsertDBErrorMO.class);
+            List<UploadResultError> uploadResultErrors = new ArrayList<>();
+            UploadResultError resultError =  new UploadResultError(-1, -1, errorMO.getIndex(), errorMO.getCode());
+            uploadResultErrors.add(resultError);
+            result.setData(uploadResultErrors);
+            result.setCode(Constant.Code.error);
+            result.setMessage(ExcelUploadError.UPLOAD_ERROR.getCode());
         }
         return result;
     }
+
 
 }

@@ -7,6 +7,10 @@ import com.zlp.dairy.base.util.MD5Util;
 import com.zlp.dairy.base.util.ResResult;
 import com.zlp.dairy.business.entity.UploadResultError;
 import com.zlp.dairy.business.service.ExcelService;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,9 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.List;
+import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -58,8 +60,102 @@ public class ExcelServiceImpl implements ExcelService {
         return result;
     }
 
-    private void analysisExcelForIssuer(ResResult<List<UploadResultError>> result, String s) {
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public ResResult<List<UploadResultError>> fileUploadForIssuerProduct(MultipartFile file) {
+        ResResult<List<UploadResultError>> result = new ResResult<>();
+        List<UploadResultError> list = new ArrayList<>();
+        result.setData(list);
+        String fileName = file.getOriginalFilename();
+        try {
+           PushbackInputStream pushbackInputStream =  new PushbackInputStream(file.getInputStream(), FileUtil.READ_SIZE);
+            String type = FileUtil.getType(pushbackInputStream);
+            if(!(FileUtil.FileType.ZIP.name().equals(type))){
+                result.error(ExcelUploadError.FILE_TYPE_ERROR.getCode());
+                //上传压缩文件的地址
+                String[] filePath = uploadFile(fileName, pushbackInputStream, type, result);
+                if(FileUtil.FileType.ZIP.name().equals(type))
+                    analysisZIP(filePath, result);
+                if(result.getCode() ==  Constant.Code.error) return result;
+                analysisExcelForIssuerProduct(result, filePath[1]);
+            }
+        } catch (IOException e) {
+            result.error(ExcelUploadError.SYSTEM_ERROR.getCode());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
 
+    private void analysisExcelForIssuerProduct(ResResult<List<UploadResultError>> result, String analysisDir) throws Exception {
+        int index = 0;
+        File excelFile = getExcelFile(analysisDir, result);
+        if(excelFile == null){
+            result.error(ExcelUploadError.FILE_NOT_FIND.getCode());
+            return;
+        }
+        List<Row> issuerProductList = new ArrayList<>();
+        //获得workBook工作簿对象
+        Workbook wb =  new XSSFWorkbook(new FileInputStream(excelFile));
+        int numberOfSheets = wb.getNumberOfSheets();
+        for (int i = 0; i < numberOfSheets; i++) {
+            Sheet sheet = wb.getSheetAt(i);
+            if(sheet.getSheetName().contains("Product")){
+                jxSheet(sheet, issuerProductList);
+            }
+        }
+        List<UploadResultError> errorList = new ArrayList<>();
+        //检查数据是否正确
+        Set<String> issuerNameSet = new HashSet<>();
+    }
+
+    private void analysisExcelForIssuer(ResResult<List<UploadResultError>> result, String analysisDir) throws IOException {
+        int index = 0;
+        try {
+            //获取Excel
+            File excelFile =  getExcelFile(analysisDir, result);
+            if(excelFile == null){
+                result.error(ExcelUploadError.FILE_NOT_FIND.getCode());
+                return;
+            }
+            List<Row> issuerList = new ArrayList<>();
+            //获得WorkBook工作簿对象
+            Workbook wb  = new XSSFWorkbook(new FileInputStream(excelFile));
+            int numberOfSheets = wb.getNumberOfSheets();
+            for (int i = 0; i < numberOfSheets; i++) {
+                Sheet sheet = wb.getSheetAt(i);
+                if(sheet.getSheetName().contains("Issuer")){
+                    jxSheet(sheet, issuerList);
+                }
+            }
+            List<UploadResultError> errorList = new ArrayList<>();
+            //检查数据是否正确
+            //undo
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private File getExcelFile(String analysisDir, ResResult<List<UploadResultError>> result) {
+        File dir = new File(analysisDir);
+        File[] files = dir.listFiles();
+        for (File file : files) {
+            if (file.getName().endsWith(".xls") || file.getName().endsWith(".xlsx")) {
+                return file;
+            }
+        }
+        return null;
+    }
+
+    private void jxSheet(Sheet sheet, List<Row> rowList) {
+        if (sheet == null) return;
+        int physicalNumberOfRows = sheet.getPhysicalNumberOfRows();
+        for (int i = 1; i < physicalNumberOfRows; i++) {
+            rowList.add(sheet.getRow(i));
+        }
     }
 
     private void analysisZIP(String[] filepath, ResResult<List<UploadResultError>> result) {

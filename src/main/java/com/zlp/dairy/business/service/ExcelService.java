@@ -10,4 +10,7 @@ import java.util.List;
 public interface ExcelService {
 
     ResResult<List<UploadResultError>> fileUploadForIssuer(MultipartFile file);
+
+    ResResult<List<UploadResultError>> fileUploadForIssuerProduct(MultipartFile file);
+
 }
