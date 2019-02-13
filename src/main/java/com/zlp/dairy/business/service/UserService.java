@@ -24,5 +24,4 @@ public interface UserService {
     Page<UserVO> getUserByFilter(String searchStr, Integer nextPage, Integer pageSize);
 
     List<UserVO> getUser();
-
 }
