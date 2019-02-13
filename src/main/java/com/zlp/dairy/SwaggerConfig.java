@@ -21,7 +21,7 @@ public class SwaggerConfig {
         return new Docket(DocumentationType.SWAGGER_2)
                 .apiInfo(apiInfo())
                 .select()
-                .apis(RequestHandlerSelectors.basePackage("com.zlp.dairy"))
+                .apis(RequestHandlerSelectors.basePackage("com.zlp.dairy.business.controller"))
                 .paths(PathSelectors.any())
                 .build();
     }
