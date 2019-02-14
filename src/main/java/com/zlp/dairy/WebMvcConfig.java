@@ -1,5 +1,6 @@
 package com.zlp.dairy;
 
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -14,8 +15,7 @@ import java.util.List;
 
 @Configuration
 @EnableWebMvc
-public class WebMvcConfigurer extends WebMvcConfigurerAdapter {
-
+public class WebMvcConfig extends WebMvcConfigurerAdapter {
 
     public void addResourceHandlers(ResourceHandlerRegistry registry){
         registry.addResourceHandler("/static/**").addResourceLocations("classpath:/static/");
@@ -26,13 +26,12 @@ public class WebMvcConfigurer extends WebMvcConfigurerAdapter {
         super.addResourceHandlers(registry);
     }
 
-
-    public void configureDefaultServletHandling(DefaultServletHandlerConfigurer configurer) {
+    public void configureDefaultServletHandling(DefaultServletHandlerConfigurer configurer){
         configurer.enable();
     }
 
     @Bean
-    public HttpMessageConverter<String> responseBodyConverter() {
+    public HttpMessageConverter<String> responseBodyConverter(){
         return new StringHttpMessageConverter(Charset.forName("UTF-8"));
     }
 
@@ -41,5 +40,4 @@ public class WebMvcConfigurer extends WebMvcConfigurerAdapter {
         super.configureMessageConverters(converters);
         converters.add(responseBodyConverter());
     }
-
 }
