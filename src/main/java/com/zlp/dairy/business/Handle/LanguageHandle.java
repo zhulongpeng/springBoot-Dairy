@@ -28,7 +28,7 @@ public class LanguageHandle {
         return languageRepository.findAllByStatus(Constant.Status.vaild);
     }
 
-    public String createLanguage(LanguageMO languageMO) {
+    public String createLanguage(LanguageMO languageMO){
         languageRepository.save(copyForEntity(languageMO, null));
         return "SUCCESS";
     }

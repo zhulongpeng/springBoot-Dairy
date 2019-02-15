@@ -1,10 +1,12 @@
 package com.zlp.dairy.business.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.annotations.Api;
 
 import java.io.Serializable;
 
 @Api("user入参基本信息")
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class UserMO implements Serializable {
 
     private String userId;

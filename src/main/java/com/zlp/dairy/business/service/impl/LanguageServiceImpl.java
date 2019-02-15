@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.validation.OverridesAttribute;
 import java.util.List;
 
 @Service
@@ -27,7 +28,7 @@ public class LanguageServiceImpl implements LanguageService {
     }
 
     @Override
-    public String createLanguage(LanguageMO languageMO) {
+    public String createLanguage(LanguageMO languageMO){
         String language = languageHandle.createLanguage(languageMO);
         if(XaUtil.isEmpty(language)) return null;
         return "SUCCESS";

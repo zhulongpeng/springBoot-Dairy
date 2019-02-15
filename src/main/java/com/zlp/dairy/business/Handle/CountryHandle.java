@@ -2,10 +2,12 @@ package com.zlp.dairy.business.Handle;
 
 import com.zlp.dairy.base.constant.Constant;
 import com.zlp.dairy.business.entity.Country;
+import com.zlp.dairy.business.model.CountryMO;
 import com.zlp.dairy.business.repository.CountryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -34,5 +36,15 @@ public class CountryHandle {
 
     public List<Country> findCountryByCode(String code) {
         return countryRepository.findByCodeAndStatus(code, Constant.Status.vaild);
+    }
+
+    public String createCountry(CountryMO countryMO) {
+        countryRepository.saveAll(copyForEntity(countryMO, null));
+        return "SUCCESS";
+    }
+
+    private List<Country> copyForEntity(CountryMO countryMO, Country country) {
+        List<Country> countryList = new ArrayList<>();
+        return countryList;
     }
 }

@@ -1,13 +1,15 @@
 package com.zlp.dairy.business.model;
 
-import io.swagger.annotations.Api;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.swagger.annotations.ApiModel;
 
 import java.io.Serializable;
 
-@Api("language基本信息")
+@ApiModel("language基本信息")
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class LanguageMO implements Serializable {
 
-    private static final long serialVersionUID = -2165692868569258738L;
+    private static final long serialVersionUID = 4155081247310502594L;
 
     private String language;
 
