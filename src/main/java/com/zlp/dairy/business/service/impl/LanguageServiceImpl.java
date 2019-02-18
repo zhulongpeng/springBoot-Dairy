@@ -4,6 +4,7 @@ import com.zlp.dairy.base.util.XaUtil;
 import com.zlp.dairy.business.Handle.LanguageHandle;
 import com.zlp.dairy.business.entity.Language;
 import com.zlp.dairy.business.model.LanguageMO;
+import com.zlp.dairy.business.model.LanguageVM;
 import com.zlp.dairy.business.service.LanguageService;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
@@ -11,7 +12,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.validation.OverridesAttribute;
 import java.util.List;
 
 @Service
@@ -41,5 +41,10 @@ public class LanguageServiceImpl implements LanguageService {
         // 将入参数排序
         markets.sort(String::compareTo);
         return languageHandle.allLanguageByMarkets(markets);
+    }
+
+    @Override
+    public List<LanguageVM> getLanguageList() {
+        return null;
     }
 }
