@@ -7,7 +7,11 @@ import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import java.util.*;
+
+import javax.sound.midi.Soundbank;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -19,7 +23,28 @@ import java.util.stream.Collectors;
 public class DemoTest {
 
     @Test
+    public void test5(){
+        final String s = "11";
+
+    }
+
+    @Test
+    public void test4(){
+        float f = 1.6f;
+        int s = (int) f;
+        System.out.println(s);
+        int ceil = (int)Math.ceil((double) f);
+        System.out.println(ceil);
+    }
+
+    @Test
     public void test3(){
+        String s = new String("www.baidu.com");
+        String s1 = new String("WWW.BAIDU.COM");
+        System.out.println("规范表示");
+        System.out.println(s.intern());
+        System.out.println("规范表示");
+        System.out.println(s1.intern());
     }
 
     @Test
