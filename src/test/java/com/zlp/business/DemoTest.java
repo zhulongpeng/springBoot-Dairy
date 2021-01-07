@@ -2,31 +2,268 @@ package com.zlp.business;
 
 import com.alibaba.fastjson.JSON;
 import com.zlp.dairy.base.entity.Student;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
+import org.junit.rules.Stopwatch;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.util.Assert;
+import org.springframework.util.StopWatch;
 
-import javax.sound.midi.Soundbank;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.LongAdder;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.LongStream;
+
 
 /**
  * Created by Ygritte Zhu on 2020/12/8
  */
+@Slf4j
 @RunWith(SpringJUnit4ClassRunner.class)
 @ActiveProfiles("dev")
 @SpringBootTest(classes = DemoTest.class)
 public class DemoTest {
 
+    /**
+     * 读操作
+     */
     @Test
-    public void test5(){
-        final String s = "11";
-
+    public void test7d(){
+        int LOOP_COUNT = 100000;
+        //线程次数
+        List<Integer> copyOnWriteArrayList = new CopyOnWriteArrayList<>();
+        List<Integer> synchronizedList = Collections.synchronizedList(new ArrayList<>());
+        addAllData(copyOnWriteArrayList);
+        addAllData(synchronizedList);
+        StopWatch stopWatch = new StopWatch();
+        int count = copyOnWriteArrayList.size();
+        stopWatch.start("Read:copyOnWriteArrayList");
+        //循环1000000次并发从CopyOnWriteArrayList随机查询元素
+        IntStream.rangeClosed(1, LOOP_COUNT).parallel().forEach(item -> copyOnWriteArrayList.get(ThreadLocalRandom.current().nextInt(count)));
+        stopWatch.stop();
+        stopWatch.start("Read:synchronizedList");
+        //循环1000000次并发从加锁的ArrayList随机查询元素
+        IntStream.range(0, LOOP_COUNT).parallel().forEach(item -> synchronizedList.get(ThreadLocalRandom.current().nextInt(count)));
+        stopWatch.stop();
+        log.info(stopWatch.prettyPrint());
+        Map result = new HashMap();
+        result.put("copyOnWriteArrayList", copyOnWriteArrayList.size());
+        result.put("synchronizedList", synchronizedList.size());
+        log.info("**************************result:{}", JSON.toJSONString(result));
     }
+
+
+    /**
+     * 写操作
+     */
+    @Test
+    public void test7c(){
+        int LOOP_COUNT = 100000;
+        //线程次数
+        List<Integer> copyOnWriteArrayList = new CopyOnWriteArrayList<>();
+        List<Integer> synchronizedList = Collections.synchronizedList(new ArrayList<>());
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start("Write:copyOnWrite");
+        //循环往写数据
+        IntStream.rangeClosed(1,10000).parallel().forEach(
+                item -> copyOnWriteArrayList.add(ThreadLocalRandom.current().nextInt(LOOP_COUNT))
+        );
+        stopWatch.stop();
+        stopWatch.start("Write:Synchronized");
+        IntStream.rangeClosed(1,10000).parallel().forEach(
+                item -> synchronizedList.add(ThreadLocalRandom.current().nextInt(LOOP_COUNT))
+        );
+        stopWatch.stop();
+        log.info(stopWatch.prettyPrint());
+        Map map = new HashMap();
+        map.put("copyOnWriteArrayList",copyOnWriteArrayList.size());
+        map.put("synchronizedList",synchronizedList.size());
+        log.info("******************************map:{}", JSON.toJSONString(map));
+    }
+
+    private void addAllData(List<Integer> list) {
+        list.addAll(IntStream.rangeClosed(1,100000).boxed().collect(Collectors.toList()));
+    }
+
+
+    @Test
+    public void test7b() throws InterruptedException {
+        int LOOP_COUNT = 100000;
+        //线程次数
+        int THREAD_COUNT = 10;
+        //元素数量
+        int ITEM_COUNT = 1000;
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start("normaluse");
+        Map<String, Long> normaluse = normaluse();
+        stopWatch.stop();
+        //校验元素数量
+        Assert.isTrue(normaluse.size() == ITEM_COUNT,"normaluse size error");
+        //校验累计总数
+        Assert.isTrue(normaluse.entrySet().stream()
+        .mapToLong(item-> item.getValue())
+                .reduce(0, Long :: sum) == LOOP_COUNT, "normaluse count error");
+        stopWatch.start("goodUse");
+        Map<String, Long> goodUse = goodU();
+        stopWatch.stop();
+        Assert.isTrue(goodUse.size() == ITEM_COUNT,"goodUse size error");
+        Assert.isTrue(goodUse.entrySet().stream()
+                .mapToLong(item-> item.getValue())
+                .reduce(0, Long :: sum) == LOOP_COUNT, "goodUse count error");
+        log.info("***************************:{}",stopWatch.prettyPrint());
+    }
+
+    private Map<String, Long> goodU() throws InterruptedException {
+        //循环次数
+        int LOOP_COUNT = 100000;
+        //线程次数
+        int THREAD_COUNT = 10;
+        //元素数量
+        int ITEM_COUNT = 1000;
+        ConcurrentHashMap<String, LongAdder> concurrentHashMap = new ConcurrentHashMap<>(ITEM_COUNT);
+        ForkJoinPool forkJoinPool = new ForkJoinPool(THREAD_COUNT);
+        forkJoinPool.execute(()->IntStream.rangeClosed(1, LOOP_COUNT).parallel()
+                .forEach(i->{
+                    String key = "item"+ ThreadLocalRandom.current().nextInt(ITEM_COUNT);
+                    //利用
+                    concurrentHashMap.computeIfAbsent(key, k -> new LongAdder()).increment();
+                }));
+        forkJoinPool.shutdown();
+        forkJoinPool.awaitTermination(1, TimeUnit.HOURS);
+        return concurrentHashMap.entrySet().stream()
+                .collect(Collectors.toMap(
+                        e -> e.getKey(),
+                        e -> e.getValue().longValue()
+                ));
+    }
+
+    private Map<String, Long> normaluse() throws InterruptedException {
+        //循环次数
+        int LOOP_COUNT = 100000;
+        //线程次数
+        int THREAD_COUNT = 10;
+        //元素数量
+        int ITEM_COUNT = 1000;
+        ConcurrentHashMap<String, Long> concurrentHashMap = new ConcurrentHashMap<>(ITEM_COUNT);
+        ForkJoinPool forkJoinPool = new ForkJoinPool(THREAD_COUNT);
+        forkJoinPool.execute(()->IntStream.rangeClosed(1, LOOP_COUNT).parallel()
+                .forEach(i->{
+                    String key = "item"+ ThreadLocalRandom.current().nextInt(ITEM_COUNT);
+                    synchronized (concurrentHashMap){
+                        if(concurrentHashMap.containsKey(key)){
+                            concurrentHashMap.put(key, concurrentHashMap.get(key)+1);
+                        }else{
+                            concurrentHashMap.put(key, 1L);
+                        }
+                    }
+                }));
+        forkJoinPool.shutdown();
+        forkJoinPool.awaitTermination(1, TimeUnit.HOURS);
+        return concurrentHashMap;
+    }
+
+    @Test
+    public void test7a() throws InterruptedException {
+        //循环次数
+        int LOOP_COUNT = 100000;
+        //线程次数
+        int THREAD_COUNT = 10;
+        //元素数量
+        int ITEM_COUNT = 1000;
+        ConcurrentHashMap<String, LongAdder> concurrentHashMap = new ConcurrentHashMap<>(ITEM_COUNT);
+        ForkJoinPool forkJoinPool = new ForkJoinPool(THREAD_COUNT);
+        forkJoinPool.execute(()->IntStream.rangeClosed(1, LOOP_COUNT).parallel()
+                .forEach(i->{
+                    String key = "item"+ ThreadLocalRandom.current().nextInt(ITEM_COUNT);
+                    //利用
+                    concurrentHashMap.computeIfAbsent(key, k -> new LongAdder()).increment();
+                }));
+        forkJoinPool.shutdown();
+        forkJoinPool.awaitTermination(1, TimeUnit.HOURS);
+        Map<String, Long> collect = concurrentHashMap.entrySet().stream()
+                .collect(Collectors.toMap(
+                        e -> e.getKey(),
+                        e -> e.getValue().longValue()
+                ));
+        log.info("*****************************collect:{}", JSON.toJSONString(collect));
+    }
+
+
+    /**
+     * Map来统计Key出现次数的场景
+     */
+    @Test
+    public void test7() throws InterruptedException {
+        //循环次数
+        int LOOP_COUNT = 100000;
+        //线程次数
+        int THREAD_COUNT = 10;
+        //元素数量
+        int ITEM_COUNT = 1000;
+        ConcurrentHashMap<String, Long> concurrentHashMap = new ConcurrentHashMap<>(ITEM_COUNT);
+        ForkJoinPool forkJoinPool = new ForkJoinPool(THREAD_COUNT);
+        forkJoinPool.execute(()->IntStream.rangeClosed(1, LOOP_COUNT).parallel()
+        .forEach(i->{
+            log.info("*************iii*****************i:{}",i);
+            String key = "item"+ ThreadLocalRandom.current().nextInt(ITEM_COUNT);
+            synchronized (concurrentHashMap){
+                if(concurrentHashMap.containsKey(key)){
+                    concurrentHashMap.put(key, concurrentHashMap.get(key)+1);
+                }else{
+                    concurrentHashMap.put(key, 1L);
+                }
+            }
+        }));
+        forkJoinPool.shutdown();
+        forkJoinPool.awaitTermination(1, TimeUnit.HOURS);
+        log.info("****************concurrentHashMap:{}",JSON.toJSONString(concurrentHashMap));
+        log.info("****************concurrentHashMapSize:{}",concurrentHashMap.size());
+    }
+
+
+    /***
+     * 比如下面这个场景。有一个含900个元素的Map，现在再补充100个元素进去，
+     * 这个补充操作由10个线程并发进行。开发人员误以为使用了ConcurrentHashMap就不会有线程安全问题，
+     * 于是不加思索地写出了下面的代码：在每一个线程的代码逻辑中先通过size方法拿到当前元素数量，
+     * 计算ConcurrentHashMap目前还需要补充多少元素，并在日志中输出了这个值，
+     * 然后通过putAll方法把缺少的元素添加进去。
+     * @throws InterruptedException
+     */
+    @Test
+    public void test6() throws InterruptedException {
+        //初始化900个元素
+        ConcurrentHashMap<String, Long> concurrentHashMap = getData(900);
+        ForkJoinPool forkJoinPool = new ForkJoinPool(10);
+        forkJoinPool.execute(()-> IntStream.rangeClosed(1,10).parallel()
+                .forEach(i->{
+                    //复合逻辑需要锁一下这个ConcurrentMap
+                    synchronized (concurrentHashMap) {
+                        //查询还要多少元素
+                        int gap = 1000 - concurrentHashMap.size();
+                        log.info("gap size:{}", gap);
+                        //补充元素
+                        concurrentHashMap.putAll(getData(gap));
+                    }
+                }));
+        //等待所有的元素完成
+        forkJoinPool.shutdown();
+        forkJoinPool.awaitTermination(1, TimeUnit.HOURS);
+        log.info("finish size:{}", concurrentHashMap.size());
+    }
+
+    private ConcurrentHashMap<String, Long> getData(int count) {
+        return LongStream.rangeClosed(1, count)
+                .boxed()
+                .collect(Collectors.toConcurrentMap(i -> UUID.randomUUID().toString(), Function.identity(),
+                        (o1, o2) -> o1, ConcurrentHashMap::new));
+    }
+
 
     @Test
     public void test4(){
