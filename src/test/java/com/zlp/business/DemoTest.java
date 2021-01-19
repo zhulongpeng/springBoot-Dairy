@@ -2,6 +2,9 @@ package com.zlp.business;
 
 import com.alibaba.fastjson.JSON;
 import com.zlp.dairy.base.entity.Student;
+import com.zlp.dairy.business.dto.Interesting;
+import com.zlp.dairy.business.entity.Item;
+import kotlin.jvm.Volatile;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,6 +31,24 @@ import java.util.stream.LongStream;
 @ActiveProfiles("dev")
 @SpringBootTest(classes = DemoTest.class)
 public class DemoTest {
+
+    /**
+     * 商品选购
+     */
+    public List<Item> createCart(){
+        return null;
+        /*return IntStream.rangeClosed(1,3)
+                .mapToObj(i -> "item" + ThreadLocalRandom.current().nextInt(items.size()))
+                .map(name -> items.get(name)).collect(Collectors.toList());*/
+    }
+
+
+    @Test
+    public void test8a(){
+        Interesting interesting = new Interesting();
+        new Thread(()->interesting.add()).start();
+        new Thread(()->interesting.compare()).start();
+    }
 
     /**
      * 读操作

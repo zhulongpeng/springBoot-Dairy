@@ -53,6 +53,10 @@
             </exclusions>
         </dependency>
         <dependency>
+            <groupId>org.skyscreamer</groupId>
+            <artifactId>jsonassert</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>easyexcel</artifactId>
             <version>1.1.2-beta5</version>
