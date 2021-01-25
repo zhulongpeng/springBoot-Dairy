@@ -4,10 +4,10 @@ import com.alibaba.fastjson.JSON;
 import com.zlp.dairy.base.entity.Student;
 import com.zlp.dairy.business.dto.Interesting;
 import com.zlp.dairy.business.entity.Item;
-import kotlin.jvm.Volatile;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -31,6 +31,16 @@ import java.util.stream.LongStream;
 @ActiveProfiles("dev")
 @SpringBootTest(classes = DemoTest.class)
 public class DemoTest {
+
+
+
+    @Test
+    public void test8b(){
+        List<String> data = new ArrayList<>();
+        data.add(IntStream.rangeClosed(1,10).mapToObj(__->"a")
+        .collect(Collectors.joining(""))+UUID.randomUUID().toString());
+        System.out.println(JSON.toJSONString(data));
+    }
 
     /**
      * 商品选购
