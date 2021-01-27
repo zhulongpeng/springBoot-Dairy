@@ -32,6 +32,11 @@ import java.util.stream.LongStream;
 @SpringBootTest(classes = DemoTest.class)
 public class DemoTest {
 
+    @Test
+    public void test9a(){
+        Map<String, Object> map = new HashMap<>();
+    }
+
 
 
     @Test
