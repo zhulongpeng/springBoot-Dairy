@@ -32,9 +32,24 @@ import java.util.stream.LongStream;
 @SpringBootTest(classes = DemoTest.class)
 public class DemoTest {
 
+    /**
+     * 杨辉三角
+     */
     @Test
     public void test9a(){
-        Map<String, Object> map = new HashMap<>();
+        int row = 10;
+        int[][] arr = new int[row][row];
+        for(int i = 0; i < arr.length; i++) {
+            for (int j = 0; j <= i; j++) {
+                if(j == 0 || j == i){
+                    arr[j][i] = 1;
+                }else{
+
+                }
+            }
+            System.out.println();
+        }
+
     }
 
 
