@@ -31,6 +31,19 @@ import java.util.stream.LongStream;
 @SpringBootTest(classes = DemoTest.class)
 public class DemoTest {
 
+    @Test
+    public void test9c(){
+        String ss = "aa";
+        StringBuffer stringBuffer = new StringBuffer();
+        StringBuilder stringBuilder = new StringBuilder();
+    }
+
+    @Test
+    public void test9b(){
+        boolean flag = "1".equals(1);
+        System.out.println(flag);
+    }
+
     /**
      * 杨辉三角
      */
