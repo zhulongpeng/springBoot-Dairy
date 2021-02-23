@@ -5,6 +5,11 @@ import com.zlp.dairy.base.entity.Student;
 import com.zlp.dairy.business.dto.Interesting;
 import com.zlp.dairy.business.entity.Item;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.ibatis.io.Resources;
+import org.apache.ibatis.session.SqlSession;
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -13,6 +18,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.Assert;
 import org.springframework.util.StopWatch;
 
+import java.io.*;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.LongAdder;
@@ -30,6 +36,46 @@ import java.util.stream.LongStream;
 @ActiveProfiles("dev")
 @SpringBootTest(classes = DemoTest.class)
 public class DemoTest {
+
+    @Test
+    public void test0223d(){
+        System.out.println(Thread.currentThread().getName());
+        System.out.println("通过线程池创建线程");
+        ExecutorService executorService = new ThreadPoolExecutor(1, 1, 60L, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(10));
+        executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+                System.out.println(Thread.currentThread().getName());
+            }
+        });
+    }
+
+    @Test
+    public void test0223c() throws Exception {
+        File file = new File("file.txt");
+        OutputStreamWriter outputStreamWriter = new OutputStreamWriter(new FileOutputStream(file), "UTF-8");
+        outputStreamWriter.write("我是字符流转换成字节流输出的");
+        outputStreamWriter.close();
+    }
+
+    @Test
+    public void test0223b(){
+        List<String> stringList = new ArrayList<>();
+        stringList.add("a");
+        stringList.add("d");
+        stringList.add("f");
+        String join = StringUtils.join(stringList,";");
+        System.out.println("**********************join:"+join);
+    }
+
+
+    @Test
+    public void test0223a() throws IOException {
+        String ss = "mybatis-config.xml";
+        InputStream resourceAsStream = Resources.getResourceAsStream(ss);
+        SqlSessionFactory build = new SqlSessionFactoryBuilder().build(resourceAsStream);
+        SqlSession sqlSession = build.openSession();
+    }
 
     @Test
     public void test9c(){
