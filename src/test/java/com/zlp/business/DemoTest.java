@@ -4,6 +4,8 @@ import com.alibaba.fastjson.JSON;
 import com.zlp.dairy.base.entity.Student;
 import com.zlp.dairy.business.dto.Interesting;
 import com.zlp.dairy.business.entity.Item;
+import com.zlp.dairy.design.test.StaticTest;
+import com.zlp.dairy.design.test.TargetObject;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.io.Resources;
@@ -17,8 +19,14 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.Assert;
 import org.springframework.util.StopWatch;
-
 import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadInfo;
+import java.lang.management.ThreadMXBean;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.LongAdder;
@@ -26,7 +34,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
-
 
 /**
  * Created by Ygritte Zhu on 2020/12/8
@@ -36,6 +43,306 @@ import java.util.stream.LongStream;
 @ActiveProfiles("dev")
 @SpringBootTest(classes = DemoTest.class)
 public class DemoTest {
+
+    @Test
+    public void multiThreadTest(){
+        //获取Java线程管理MXBean
+        ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
+        //不需要获取同步的monitor和synchonizer信息，仅获取线程和线程堆栈信息
+        ThreadInfo[] threadInfos = threadMXBean.dumpAllThreads(false, false);
+        //遍历线程信息，仅打印线程ID和线程名称信息
+        for (ThreadInfo threadInfo : threadInfos) {
+            System.out.println("[" + threadInfo.getThreadId() + "] " + threadInfo.getThreadName());
+        }
+    }
+
+    @Test
+    public void currentHashMapTest(){
+        ConcurrentHashMap<String, String> hashMap = new ConcurrentHashMap<>();
+        hashMap.put("","");
+    }
+
+    @Test
+    public void classTest() throws ClassNotFoundException, IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException, NoSuchFieldException {
+        Class<?> aClass = Class.forName("com.zlp.dairy.design.test.TargetObject");
+        TargetObject targetObject = (TargetObject) aClass.newInstance();
+//        targetObject.setValue("这个是value");
+        System.out.println(JSON.toJSONString(targetObject));
+        //获取类中所有定义的方法
+        Method[] declaredMethods = aClass.getDeclaredMethods();
+        for (Method declaredMethod : declaredMethods) {
+            System.out.println("**********类中的方法***:"+declaredMethod.getName());
+        }
+        /**
+         * 获取指定方法
+         */
+        Method publicMethods = aClass.getDeclaredMethod("publicMethod", String.class);
+        publicMethods.invoke(targetObject,"publicMethod");
+        /**
+         * 获取指定参数并对参数进行修改
+         */
+        Field declaredFields = aClass.getDeclaredField("value");
+        declaredFields.setAccessible(true);
+        declaredFields.set(targetObject, "zhuzhu");
+        /**
+         * 调用private方法
+         */
+        Method privateMethod = aClass.getDeclaredMethod("privateMethod");
+        //为了调用private方法取消安全检查
+        privateMethod.setAccessible(true);
+        privateMethod.invoke(targetObject);
+    }
+
+    @Test
+    public void test0303a(){
+        StaticTest staticTest = new StaticTest();
+        staticTest.getClass();
+    }
+
+    @Test
+    public void test0302w(){
+        Integer[] myArray = {1, 2 , 3};
+        List<Integer> ints = Arrays.asList(myArray);
+        System.out.println(JSON.toJSONString(ints));
+        ints.add(4);
+        System.out.println(JSON.toJSONString(ints));
+    }
+
+    @Test
+    public void test0302q(){
+        String[] myArray = {"Apple","Banana","Orange"};
+        List<String> stringList = Arrays.asList(myArray);
+        System.out.println(JSON.toJSONString(stringList));
+        System.out.println(JSON.toJSONString(Arrays.asList("Apple","Banana","Orange")));
+    }
+
+    /**
+     * 关于BigDecimal
+     */
+    @Test
+    public void test0302d(){
+        BigDecimal a = new BigDecimal(1.0);
+        BigDecimal b = new BigDecimal(0.9);
+        BigDecimal c = new BigDecimal(0.8);
+        BigDecimal x = a.subtract(b);
+        BigDecimal y = b.subtract(c);
+        System.out.println(x);
+        System.out.println(y);
+        System.out.println(Objects.equals(x, y));
+        BigDecimal aa = new BigDecimal("1.0");
+        BigDecimal bb = new BigDecimal("0.9");
+        // " compareTo  -1表示小于，0表示等于，1表示大于"
+        System.out.println("compareTo");
+        System.out.println(aa.compareTo(bb));
+        BigDecimal bigDecimal = new BigDecimal("0.81868188818");
+        BigDecimal bigDecimal1 = bigDecimal.setScale(3, BigDecimal.ROUND_HALF_DOWN);
+        System.out.println(bigDecimal1);
+    }
+
+    @Test
+    public void test0302c(){
+        // 浮点数之间的等值判断，基本数据类型不能用==来比较，包装数据类型不能用equals来判断
+        // 因为会丢失精度
+        float a = 1.0f - 0.9f;
+        float b = 0.9f - 0.8f;
+        System.out.println(a);
+        System.out.println(b);
+        System.out.println( a == b);
+        System.out.println( Objects.equals(a, b));
+    }
+
+    @Test
+    public void test0302b(){
+        // " == "  或 equals() 方法
+        // " == " 它的作用是判断两个对象的地址是不是相等。即判断两个对象是不是同一个对象（基本数据类型==比较的是值，引用数据类型==比较的是内存地址）
+        Integer x = 3;
+        Integer y = 3;
+        System.out.println( x == y );
+        Integer a = new Integer(3);
+        Integer b = new Integer(3);
+        System.out.println( a == b);
+        System.out.println( a.equals(b) );
+    }
+
+    @Test
+    public void test0302a(){
+        String ss = "s";
+        boolean s = Objects.equals(ss, "s");
+        System.out.println(s);
+    }
+
+    @Test
+    public void hashMapTest(){
+        HashMap<String, String> hashMap = new HashMap<>();
+        //ke不能重复，value可以重复
+        hashMap.put("san","张三");
+        hashMap.put("si","李四");
+        hashMap.put("wu","王五");
+        hashMap.put("zhang","老张");
+        hashMap.put("zhang","老张啊");//老张会被覆盖
+        hashMap.put("wang","老王");
+        System.out.println("*******hashMap*******:"+JSON.toJSONString(hashMap));
+        /**
+         * 遍历HashMap
+         */
+        // 获取所有的key
+        Set<String> keySet = hashMap.keySet();
+        keySet.forEach(key->{
+            System.out.println("key的值为:"+key);
+        });
+        //获取Map中的值
+        Set<String> keySet1 = hashMap.keySet();
+        keySet1.forEach(key->{
+            System.out.println("map中key为 " + key + "的值为: "+hashMap.get(key));
+        });
+        //
+        Set<Map.Entry<String, String>> entries = hashMap.entrySet();
+        entries.forEach(entry->{
+            System.out.println(entry.getKey() + "  =====  "+entry.getValue());
+        });
+
+        /**
+         * HashMap的其他常用方法
+         */
+        System.out.println(" after map.size():" +hashMap.size());
+        System.out.println(" after map.isEmpty(): " + hashMap.isEmpty());
+        System.out.println(" remove "+hashMap.remove("si"));
+        System.out.println(" after map remove:" + JSON.toJSONString(hashMap));
+        System.out.println(" after map.get(wang)" +hashMap.get("wang"));
+        System.out.println("after map.containsKey(wang)："+hashMap.containsKey("wang"));
+        System.out.println("after containsValue(老王)："+hashMap.containsValue("老王"));
+        System.out.println(" replace "+hashMap.replace("wang", "老王啊"));
+        System.out.println("after map.replace(wang, 老王啊):"+JSON.toJSONString(hashMap));
+    }
+
+    @Test
+    public void test0301d(){
+        //创建存放int类型的linkedList
+        LinkedList<Integer> linkedList = new LinkedList<>();
+        linkedList.addFirst(0);
+        linkedList.add(1);
+        linkedList.add(1,2);
+        linkedList.addLast(3);
+        System.out.println(JSON.toJSONString(linkedList));
+    }
+
+    @Test
+    public void test0301c(){
+        int[] a = new int[3];
+        a[0] = 0;
+        a[1] = 1;
+        a[2] = 2;
+        a[3] = 3;
+        int[] ints = Arrays.copyOf(a, 10);
+        for (int i = 0; i < ints.length; i++) {
+            System.out.println(ints[i]+"");
+        }
+    }
+
+    @Test
+    public void test0301b(){
+        int[] a = new int[10];
+        a[0] = 0;
+        a[1] = 1;
+        a[2] = 2;
+        a[3] = 3;
+        System.arraycopy(a, 1, a ,2 ,3);
+        for (int i = 0; i < a.length; i++) {
+            System.out.println(a[i]+ "");
+        }
+    }
+
+    @Test
+    public void tets0301a(){
+        //存储的元素是有序的、可重复的
+        List<String> list = new ArrayList<>();
+        list.add("");
+        //存储的元素是无序的，不可重复的
+        Set<String> stringSet = new HashSet<>();
+        //键值对（key-value），key是无序的，不可重复的，value是无序的，可重复的
+        Map<String, String> map = new HashMap<>();
+    }
+
+    @Test
+    public void test0224a(){
+        List<String> list = new ArrayList<>();
+        Set<String> stringSet = new HashSet<>();
+        Map<String, String> map = new HashMap<>();
+        LinkedHashMap<String, String> linkedHashMap = new LinkedHashMap<>();
+        List<String> linkedList = new LinkedList<>();
+        List<String> synchronizedList = Collections.synchronizedList(new LinkedList<>());
+        linkedList.add("");
+        linkedHashMap.put("","");
+        map.put("aa","aa");
+        map.put("aa","bb");
+        map.get("aa");
+        /**
+         * final V putVal(int hash, K key, V value, boolean onlyIfAbsent,
+         *                    boolean evict) {
+         *         Node<K,V>[] tab; Node<K,V> p; int n, i;
+         *         if ((tab = table) == null || (n = tab.length) == 0)
+         *             n = (tab = resize()).length;
+         *         if ((p = tab[i = (n - 1) & hash]) == null)
+         *             tab[i] = newNode(hash, key, value, null);
+         *         else {
+         *             Node<K,V> e; K k;
+         *             if (p.hash == hash &&
+         *                 ((k = p.key) == key || (key != null && key.equals(k))))
+         *                 e = p;
+         *             else if (p instanceof TreeNode)
+         *                 e = ((TreeNode<K,V>)p).putTreeVal(this, tab, hash, key, value);
+         *             else {
+         *                 for (int binCount = 0; ; ++binCount) {
+         *                     if ((e = p.next) == null) {
+         *                         p.next = newNode(hash, key, value, null);
+         *                         if (binCount >= TREEIFY_THRESHOLD - 1) // -1 for 1st
+         *                             treeifyBin(tab, hash);
+         *                         break;
+         *                     }
+         *                     if (e.hash == hash &&
+         *                         ((k = e.key) == key || (key != null && key.equals(k))))
+         *                         break;
+         *                     p = e;
+         *                 }
+         *             }
+         *             if (e != null) { // existing mapping for key
+         *                 V oldValue = e.value;
+         *                 if (!onlyIfAbsent || oldValue == null)
+         *                     e.value = value;
+         *                 afterNodeAccess(e);
+         *                 return oldValue;
+         *             }
+         *         }
+         *         ++modCount;
+         *         if (++size > threshold)
+         *             resize();
+         *         afterNodeInsertion(evict);
+         *         return null;
+         *     }
+         */
+        System.out.println(map.get("aa"));
+        /**
+         * final Node<K,V> getNode(int hash, Object key) {
+         *         Node<K,V>[] tab; Node<K,V> first, e; int n; K k;
+         *         if ((tab = table) != null && (n = tab.length) > 0 &&
+         *             (first = tab[(n - 1) & hash]) != null) {
+         *             if (first.hash == hash && // always check first node
+         *                 ((k = first.key) == key || (key != null && key.equals(k))))
+         *                 return first;
+         *             if ((e = first.next) != null) {
+         *                 if (first instanceof TreeNode)
+         *                     return ((TreeNode<K,V>)first).getTreeNode(hash, key);
+         *                 do {
+         *                     if (e.hash == hash &&
+         *                         ((k = e.key) == key || (key != null && key.equals(k))))
+         *                         return e;
+         *                 } while ((e = e.next) != null);
+         *             }
+         *         }
+         *         return null;
+         *     }
+         */
+    }
 
     @Test
     public void test0223d(){
