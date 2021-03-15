@@ -1,6 +1,7 @@
 package com.zlp.business;
 
 import com.alibaba.fastjson.JSON;
+import com.github.pagehelper.util.StringUtil;
 import com.zlp.dairy.base.entity.Student;
 import com.zlp.dairy.business.dto.Interesting;
 import com.zlp.dairy.business.entity.Item;
@@ -19,6 +20,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.Assert;
 import org.springframework.util.StopWatch;
+
 import java.io.*;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
@@ -43,6 +45,121 @@ import java.util.stream.LongStream;
 @ActiveProfiles("dev")
 @SpringBootTest(classes = DemoTest.class)
 public class DemoTest {
+
+    @Test
+    public void test(){
+        int rows = 0; //菱形需要的*号数
+        ArrayList<Integer> list = new ArrayList<>();
+        Scanner input = new Scanner(System.in);
+        System.out.print("请输入*号数：");
+        rows = input.nextInt();
+        for (int k = 0; k < rows; k++) {
+            if (k % 2 != 0) {
+                //找到所有不总数小的可能的行数
+                int count = k;
+                //计算画出行数的菱形需要的*号数
+                for (int l = 1; l < k; l = l + 2) {
+                    count = count + 2 * l;
+                }
+                //总数比输入小的行数
+                if (count < rows) {
+                    list.add(k);
+                }
+            }
+        }
+        System.out.println("画出最多的菱形");
+        System.out.println();
+        int sum = 0;
+        if(null != list && !list.isEmpty()) {
+            int n = (list.get(list.size() - 1) + 1) / 2;
+            for (int i = 1; i <= n; i++) {
+                for (int j = 1; j <= n - i; j++) {
+                    System.out.print(" ");
+                }
+                for (int p = 1; p <= 2 * i - 1; p++) {
+                    System.out.print("*");
+                    sum++;
+                }
+                System.out.print("\n");
+            }
+            for (int i = n - 1; i >= 1; i--) {
+                for (int j = 1; j <= n - i; j++) {
+                    System.out.print(" ");
+                }
+                for (int q = 1; q <= 2 * i - 1; q++) {
+                    System.out.print("*");
+                    sum++;
+                }
+                System.out.print("\n");
+            }
+        }
+        System.out.println("剩余*数:" + (rows - sum));
+    }
+
+
+    @Test
+    public void testThreadLoacal(){
+        //ThreadLocal线程的变量副本，每个线程隔离
+        ThreadLocal<Object> threadLocal = new ThreadLocal<>();
+    }
+
+
+
+    @Test
+    public void test0304(){
+        //核心线程数
+        int corePoolSize = 3;
+        //最大线程数
+        int maximumPoolSize = 6;
+        //超过 corePoolSize 线程数量的县城最大空闲时间
+        long keepAliveTime = 2;
+        //以秒为时间单位
+        TimeUnit unit = TimeUnit.SECONDS;
+        //创建工作队列，用于存放提交的等待执行任务
+        BlockingQueue<Runnable> workQueue = new ArrayBlockingQueue<>(2);
+        ThreadPoolExecutor threadPoolExecutor = null;
+        try{
+            //创建线程池
+            ThreadPoolExecutor threadPoolExecutor1 = new ThreadPoolExecutor(
+                    corePoolSize,
+                    maximumPoolSize,
+                    keepAliveTime,
+                    unit,
+                    workQueue,
+                    new ThreadPoolExecutor.AbortPolicy()
+            );
+            //循环提交任务
+            for (int i = 0; i < 8;i++){
+                //提交任务的索引
+                final int index = (i + 1);
+                threadPoolExecutor.submit(()->{
+                    //线程打印输出
+                    System.out.println("线程");
+                });
+            }
+        }catch (Exception e){
+
+        }
+        List<String> stringList = new ArrayList<>();
+
+    }
+
+
+
+    @Test
+    public void stringTest(){
+        String str1 = "abcd";
+        String  str2 = new String("abcd");
+        System.out.println(str1 == str2);
+        System.out.println(str1.equals(str2));
+        String s = "str";
+        String ss = "ing";
+        String sss = "str" + "ing"; //常量池中的对象
+        String ssss = s + ss; //在堆上创建新的对象
+        String sssss = "string"; //常量池中的对象
+        System.out.println(sss == ssss);
+        System.out.println(ssss == sssss);
+    }
 
     @Test
     public void multiThreadTest(){
